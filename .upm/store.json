@@ -1,0 +1,1 @@
+{"version":2,"languages":{"nodejs-yarn":{"specfileHash":"85dd608bba45a6d41178d1de5b661336","lockfileHash":"5f50bb000d65b1e0185e742a1360b61f","guessedImports":["@codemirror/basic-setup","@codemirror/lang-css","@codemirror/view","@codemirror/language"],"guessedImportsHash":"24f2f499ba27dee995108c068ff0938c"}}}
