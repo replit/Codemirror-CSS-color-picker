@@ -1,7 +1,7 @@
 {
   "name": "@replit/codemirror-css-color-picker",
   "description": "Enables a color picker input next to css colors",
-  "version": "0.19.3",
+  "version": "0.19.4",
   "author": {
     "name": "Faris Masad",
     "email": "faris@repl.it"
