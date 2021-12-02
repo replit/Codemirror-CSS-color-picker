@@ -2,6 +2,8 @@
 
 A codemirror extension that adds a color picker input next to CSS color values
 
+![preview](https://replit.com/cdn-cgi/image/width=3840,quality=80/https://storage.googleapis.com/replit/images/1632627522442_46320608eaa3f0c58bebd5fe4a10efc2.gif)
+
 ### Usage
 
 ```ts
