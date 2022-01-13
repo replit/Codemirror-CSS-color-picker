@@ -150,28 +150,78 @@ function hslToHex(h: string, s: string, l: string): string {
   return `#${decimalToHex(r)}${decimalToHex(g)}${decimalToHex(b)}`;
 }
 
-function hslToRGB(hue: number, sat: number, light: number): number[] {
-  hue = hue / 60;
-  let t2: number;
-  if (light <= 0.5) {
-    t2 = light * (sat + 1);
-  } else {
-    t2 = light + sat - (light * sat);
+function hslToRGB(hue: number, saturation: number, luminance: number): number[] {
+  // If there is no Saturation it means that it’s a shade of grey.
+  // So in that case we just need to convert the Luminance and set R,G and B to that level.
+  if (saturation === 0) {
+    const value = Math.round(luminance * 255);
+    return [value, value, value];
   }
-  const t1 = light * 2 - t2;
-  const r = hueToRgb(t1, t2, hue + 2) * 255;
-  const g = hueToRgb(t1, t2, hue) * 255;
-  const b = hueToRgb(t1, t2, hue - 2) * 255;
-  return [ Math.round(r), Math.round(g), Math.round(b) ];
+
+  let temp1: number;
+  // If Luminance is smaller then 0.5 (50%) then temporary_1 = Luminance x (1.0+Saturation)
+  if (luminance < 0.5) {
+    temp1 = luminance * (1.0 + saturation);
+  } else {
+    // If Luminance is equal or larger then 0.5 (50%) then temporary_1 = Luminance + Saturation – Luminance x Saturation
+    temp1 = luminance + saturation - (luminance * saturation);
+  }
+
+  // temporary_2 = 2 x Luminance – temporary _1
+  const temp2 = 2 * luminance - temp1;
+
+  // The next step is to convert the 360 degrees in a circle to 1 by dividing the angle by 360.
+  hue = hue / 360.0;
+
+  // And now we need another temporary variable for each color channel, temporary_R, temporary_G and temporary_B.
+  // All values need to be between 0 and 1. In our case all the values are between 0 and 1
+  const tempR = clamp(hue + 0.333);
+  const tempG = hue;
+  const tempB = clamp(hue - 0.333);
+
+  const red = hueToRGB(temp1, temp2, tempR);
+  const green = hueToRGB(temp1, temp2, tempG);
+  const blue = hueToRGB(temp1, temp2, tempB);
+  return [ Math.round(red * 255), Math.round(green * 255), Math.round(blue * 255) ];
 }
 
-function hueToRgb(t1: number, t2: number, hue: number): number {
-  if (hue < 0) hue += 6;
-  if (hue >= 6) hue -= 6;
-  if (hue < 1) return (t2 - t1) * hue + t1;
-  else if(hue < 3) return t2;
-  else if(hue < 4) return (t2 - t1) * (4 - hue) + t1;
-  else return t1;
+// If you get a negative value you need to add 1 to it.
+// If you get a value above 1 you need to subtract 1 from it.
+function clamp(num: number): number {
+  if (num < 0) {
+    return num + 1;
+  }
+  if (num > 1) {
+    return num - 1;
+  }
+  return num;
+}
+
+/**
+ * Now we need to do up to 3 tests to select the correct formula for each color channel. Let’s start with Red.
+ *
+ * test 1 – If 6 x temporary_R is smaller then 1, Red = temporary_2 + (temporary_1 – temporary_2) x 6 x temporary_R
+ * In the case the first test is larger then 1 check the following
+ *
+ * test 2 – If 2 x temporary_R is smaller then 1, Red = temporary_1
+ * In the case the second test also is larger then 1 do the following
+ *
+ * test 3 – If 3 x temporary_R is smaller then 2, Red = temporary_2 + (temporary_1 – temporary_2) x (0.666 – temporary_R) x 6
+ * In the case the third test also is larger then 2 you do the following
+ *
+ * Red = temporary_2
+ */
+function hueToRGB(temp1: number, temp2: number, tempHue: number): number {
+  if ((6 * tempHue) < 1) {
+    return temp2 + (temp1 - temp2) * 6 * tempHue;
+  }
+  if ((2 * tempHue) < 1) {
+    return temp1;
+  }
+  if ((3 * tempHue) < 2) {
+    return temp2 + (temp1 - temp2) * (0.666 - tempHue) * 6;
+  }
+  return temp2;
 }
 
 // https://www.niwa.nu/2013/05/math-behind-colorspace-conversions-rgb-hsl/
