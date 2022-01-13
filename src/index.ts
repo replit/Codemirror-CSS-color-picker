@@ -16,7 +16,7 @@ enum ColorType {
   named = "NAMED"
 };
 
-const rgbCallExpRegex = /rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(,\s*0?\.\d+)?\)/;
+const rgbCallExpRegex = /rgb\(\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)\s*(,\s*0?\.\d+)?\)/;
 
 function colorPickersDecorations(view: EditorView) {
   const widgets: Array<Range<Decoration>> = [];
@@ -35,7 +35,7 @@ function colorPickersDecorations(view: EditorView) {
           }
 
           const [_, r, g, b, a] = match;
-          const color = rgbToHex(Number(r), Number(g), Number(b));
+          const color = rgbToHex(r, g, b);
 
           const d = Decoration.widget({
             widget: new ColorPickerWidget(ColorType.rgb, color, from, to, a || ''),
@@ -93,8 +93,15 @@ function toFullHex(color: string): string[] {
   return [color, ''];
 }
 
-function rgbComponentToHex(component: number): string {
-  const hex = component.toString(16);
+function rgbComponentToHex(component: string): string {
+  let numericValue: number;
+  if (component.endsWith('%')) { // 0-100%
+    const percent = Number(component.slice(0, -1));
+    numericValue = Math.round((percent / 100) * 255.0);
+  } else {
+    numericValue = Number(component); // assume 0-255
+  }
+  const hex = numericValue.toString(16);
 
   return hex.length == 1 ? '0' + hex : hex;
 }
@@ -106,7 +113,7 @@ function hexToRGBComponents(hex: string): number[] {
   return [ parseInt(r, 16), parseInt(g, 16), parseInt(b, 16) ];
 }
 
-function rgbToHex(r: number, g: number, b: number): string {
+function rgbToHex(r: string, g: string, b: string): string {
   return `#${rgbComponentToHex(r)}${rgbComponentToHex(g)}${rgbComponentToHex(b)}`;
 }
 

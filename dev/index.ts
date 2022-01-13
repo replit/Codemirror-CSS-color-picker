@@ -6,13 +6,13 @@ import { colorPicker } from "../src/"
 const doc = `
 .wow {
   color: #ff0000;
-  border-color: rgb(0, 255, 0);
+  border-color: rgb(0, 255, 0%);
   background-color: #00f;
 }
 
 #alpha {
   color: #FF00FFAA;
-  border-color: rgb(255, 128, 64, 0.5);
+  border-color: rgb(255, 50%, 64, 0.5);
 }
 
 .hex4 {
