@@ -27,6 +27,10 @@ const doc = `
   border-right-color: lightcoral;
   border-bottom-color: snow;
 }
+
+#hue {
+  color: hsl(0, 100%, 50%);
+}
 `
 
 new EditorView({
