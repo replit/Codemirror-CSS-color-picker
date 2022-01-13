@@ -18,6 +18,15 @@ const doc = `
 .hex4 {
   color: #ABCD;
 }
+
+.named {
+  color: red;
+  background-color: blue;
+  border-top-color: aquamarine;
+  border-left-color: mediumaquamarine;
+  border-right-color: lightcoral;
+  border-bottom-color: snow;
+}
 `
 
 new EditorView({

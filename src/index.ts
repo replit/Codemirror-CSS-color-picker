@@ -8,10 +8,12 @@ import {
 } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { Range } from '@codemirror/rangeset';
+import { namedColors } from './named-colors';
 
 enum ColorType {
   rgb = "RGB",
-  hex = "HEX"
+  hex = "HEX",
+  named = "NAMED"
 };
 
 const rgbCallExpRegex = /rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(,\s*0?\.\d+)?\)/;
@@ -54,6 +56,19 @@ function colorPickersDecorations(view: EditorView) {
           });
 
           widgets.push(d.range(to));
+        }
+
+        if (type.name === 'ValueName') {
+          const colorName = view.state.doc.sliceString(from, to);
+          if (namedColors.has(colorName)) {
+            const color = namedColors.get(colorName);
+            const d = Decoration.widget({
+              widget: new ColorPickerWidget(ColorType.named, color, from, to, ''),
+              side: 1,
+            });
+
+            widgets.push(d.range(to));
+          }
         }
       },
     });
@@ -166,10 +181,15 @@ export const colorPicker = ViewPlugin.fromClass(
           return false;
         }
 
-        // TODO: if colorType == rgb, convert to rgb call!
         let converted = target.value + target.dataset.alpha;
         if (target.dataset.colorType === ColorType.rgb) {
           converted = `rgb(${hexToRGBComponents(target.value).join(', ')}${target.dataset.alpha})`;
+        } else if (target.dataset.colorType === ColorType.named) {
+          // If the hex is an exact match for another named color, prefer retaining name
+          for (const [key, value] of namedColors.entries()) {
+            if (value === target.value)
+              converted = key;
+          }
         }
         view.dispatch({
           changes: {
