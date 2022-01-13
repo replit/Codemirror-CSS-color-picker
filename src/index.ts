@@ -46,10 +46,10 @@ function colorPickersDecorations(view: EditorView) {
         }
 
         if (type.name === 'ColorLiteral') {
-          const color = toFullHex(view.state.doc.sliceString(from, to));
+          const [color, alpha] = toFullHex(view.state.doc.sliceString(from, to));
 
           const d = Decoration.widget({
-            widget: new ColorPickerWidget(ColorType.hex, color, from, to, ''),
+            widget: new ColorPickerWidget(ColorType.hex, color, from, to, alpha),
             side: 1,
           });
 
@@ -62,12 +62,16 @@ function colorPickersDecorations(view: EditorView) {
   return Decoration.set(widgets);
 }
 
-function toFullHex(color: string) {
+function toFullHex(color: string): string[] {
   if (color.length === 4) {
-    return `#${color[1].repeat(2)}${color[2].repeat(2)}${color[3].repeat(2)}`;
+    return [ `#${color[1].repeat(2)}${color[2].repeat(2)}${color[3].repeat(2)}`, ''];
   }
 
-  return color;
+  if (color.length === 9) {
+    return [ `#${color.slice(1, -2)}`, color.slice(-2)];
+  }
+
+  return [color, ''];
 }
 
 function rgbComponentToHex(component: number): string {

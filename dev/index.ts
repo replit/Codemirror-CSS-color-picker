@@ -11,6 +11,7 @@ const doc = `
 }
 
 #alpha {
+  color: #FF00FFAA;
   border-color: rgb(255, 128, 64, 0.5);
 }
 `
