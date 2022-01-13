@@ -179,9 +179,14 @@ function rgbToHSL(r: number, g: number, b: number): number[] {
   const redPercent = r / 255;
   const greenPercent = g / 255;
   const bluePercent = b / 255;
-  let min = Math.min( redPercent, greenPercent, bluePercent);
-  let max = Math.max(redPercent, greenPercent, bluePercent);
+  const min = Math.min(redPercent, greenPercent, bluePercent);
+  const max = Math.max(redPercent, greenPercent, bluePercent);
   const luminance = (max + min) / 2;
+  // If the min and max value are the same, it means that there is no saturation. ...
+  // If there is no Saturation, we don’t need to calculate the Hue. So we set it to 0 degrees.
+  if (max === min) {
+    return [ 0, 0, luminance];
+  }
 
   let saturation: number;
   // If Luminance is less or equal to 0.5, then Saturation = (max-min)/(max+min)
