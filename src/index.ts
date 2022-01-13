@@ -63,11 +63,15 @@ function colorPickersDecorations(view: EditorView) {
 }
 
 function toFullHex(color: string): string[] {
-  if (color.length === 4) {
+  if (color.length === 4) { // 3-char hex
     return [ `#${color[1].repeat(2)}${color[2].repeat(2)}${color[3].repeat(2)}`, ''];
   }
 
-  if (color.length === 9) {
+  if (color.length === 5) { // 4-char hex (alpha)
+    return [ `#${color[1].repeat(2)}${color[2].repeat(2)}${color[3].repeat(2)}`, color[4].repeat(2)];
+  }
+
+  if (color.length === 9) { // 8-char hex (alpha)
     return [ `#${color.slice(1, -2)}`, color.slice(-2)];
   }
 

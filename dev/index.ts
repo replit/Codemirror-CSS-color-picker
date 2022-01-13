@@ -14,6 +14,10 @@ const doc = `
   color: #FF00FFAA;
   border-color: rgb(255, 128, 64, 0.5);
 }
+
+.hex4 {
+  color: #ABCD;
+}
 `
 
 new EditorView({
