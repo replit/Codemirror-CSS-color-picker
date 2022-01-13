@@ -9,6 +9,10 @@ const doc = `
   border-color: rgb(0, 255, 0);
   background-color: #00f;
 }
+
+#alpha {
+  border-color: rgb(255, 128, 64, 0.5);
+}
 `
 
 new EditorView({

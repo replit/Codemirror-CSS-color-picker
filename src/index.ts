@@ -9,7 +9,12 @@ import {
 import { syntaxTree } from '@codemirror/language';
 import { Range } from '@codemirror/rangeset';
 
-const rgbCallExpRegex = /rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)/;
+enum ColorType {
+  rgb = "RGB",
+  hex = "HEX"
+};
+
+const rgbCallExpRegex = /rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(,\s*0?\.\d+)?\)/;
 
 function colorPickersDecorations(view: EditorView) {
   const widgets: Array<Range<Decoration>> = [];
@@ -27,11 +32,11 @@ function colorPickersDecorations(view: EditorView) {
             return;
           }
 
-          const [_, r, g, b] = match;
+          const [_, r, g, b, a] = match;
           const color = rgbToHex(Number(r), Number(g), Number(b));
 
           const d = Decoration.widget({
-            widget: new ColorPickerWidget(color, from, to),
+            widget: new ColorPickerWidget(ColorType.rgb, color, from, to, a || ''),
             side: 1,
           });
 
@@ -44,7 +49,7 @@ function colorPickersDecorations(view: EditorView) {
           const color = toFullHex(view.state.doc.sliceString(from, to));
 
           const d = Decoration.widget({
-            widget: new ColorPickerWidget(color, from, to),
+            widget: new ColorPickerWidget(ColorType.hex, color, from, to, ''),
             side: 1,
           });
 
@@ -65,34 +70,43 @@ function toFullHex(color: string) {
   return color;
 }
 
-function rgbComponentToHex(component: number) {
+function rgbComponentToHex(component: number): string {
   const hex = component.toString(16);
 
   return hex.length == 1 ? '0' + hex : hex;
 }
 
-function rgbToHex(r: number, g: number, b: number) {
-  return `#${rgbComponentToHex(r)}${rgbComponentToHex(g)}${rgbComponentToHex(
-    b,
-  )}`;
+function hexToRGBComponents(hex: string): number[] {
+  const r = hex.slice(1, 3);
+  const g = hex.slice(3, 5);
+  const b = hex.slice(5, 7);
+  return [ parseInt(r, 16), parseInt(g, 16), parseInt(b, 16) ];
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return `#${rgbComponentToHex(r)}${rgbComponentToHex(g)}${rgbComponentToHex(b)}`;
 }
 
 export const wrapperClassName = 'cm-css-color-picker-wrapper';
 
 class ColorPickerWidget extends WidgetType {
   constructor(
+    readonly colorType: ColorType,
     readonly color: string,
     readonly from: number,
     readonly to: number,
+    readonly alpha: string,
   ) {
     super();
   }
 
   eq(other: ColorPickerWidget) {
     return (
+      other.colorType === this.colorType &&
       other.color === this.color &&
       other.from === this.from &&
-      other.to === this.to
+      other.to === this.to &&
+      other.alpha === this.alpha
     );
   }
 
@@ -100,6 +114,8 @@ class ColorPickerWidget extends WidgetType {
     const picker = document.createElement('input');
     picker.dataset.from = this.from.toString();
     picker.dataset.to = this.to.toString();
+    picker.dataset.alpha = this.alpha;
+    picker.dataset.colorType = this.colorType;
     picker.type = 'color';
     picker.value = this.color;
 
@@ -142,11 +158,16 @@ export const colorPicker = ViewPlugin.fromClass(
           return false;
         }
 
+        // TODO: if colorType == rgb, convert to rgb call!
+        let converted = target.value + target.dataset.alpha;
+        if (target.dataset.colorType === ColorType.rgb) {
+          converted = `rgb(${hexToRGBComponents(target.value).join(', ')}${target.dataset.alpha})`;
+        }
         view.dispatch({
           changes: {
             from: Number(target.dataset.from),
             to: Number(target.dataset.to),
-            insert: target.value,
+            insert: converted,
           },
         });
 
