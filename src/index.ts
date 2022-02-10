@@ -109,7 +109,7 @@ class ColorPickerWidget extends WidgetType {
     button.style.height = "1em";
     button.style.width = "1em";
     button.style.padding = "0px";
-    button.style.border = "none";
+    button.style.border = "1px solid #4e5569";
     button.style.borderRadius = "2px";
     button.style.marginLeft = "0.5ch";
     button.style.backgroundColor = this.color;
