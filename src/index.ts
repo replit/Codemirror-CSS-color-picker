@@ -101,20 +101,21 @@ class ColorPickerWidget extends WidgetType {
     picker.type = 'color';
     picker.value = this.color;
 
-    picker.style.display = "none";
+    picker.style.display = 'none';
 
-    const button = document.createElement("button");
+    const button = document.createElement('button');
     button.onclick = () => picker.click();
 
-    button.style.height = "1em";
-    button.style.width = "1em";
-    button.style.padding = "0px";
-    button.style.border = "1px solid #4e5569";
-    button.style.borderRadius = "2px";
-    button.style.marginLeft = "0.5ch";
+    // can this be fixed?
+    button.style.height = '1em';
+    button.style.width = '1em';
+    button.style.padding = '0px';
+    button.style.border = '1px solid #4e5569';
+    button.style.borderRadius = '2px';
+    button.style.marginLeft = '0.5ch';
     button.style.backgroundColor = this.color;
-    button.style.cursor = "pointer";
-    button.style.transform = "translateY(-3px)";
+    button.style.cursor = 'pointer';
+    button.style.transform = 'translateY(-3px)';
 
     const wrapper = document.createElement('span');
     wrapper.appendChild(picker);
