@@ -32,20 +32,18 @@ function colorPickersDecorations(view: EditorView) {
 
           const d = Decoration.widget({
             widget: new ColorPickerWidget(color, from, to),
-            side: 1,
+            side: 0,
           });
 
           widgets.push(d.range(to));
 
           return;
-        }
-
-        if (type.name === 'ColorLiteral') {
+        } else if (type.name === 'ColorLiteral') {
           const color = toFullHex(view.state.doc.sliceString(from, to));
 
           const d = Decoration.widget({
             widget: new ColorPickerWidget(color, from, to),
-            side: 1,
+            side: 0,
           });
 
           widgets.push(d.range(to));
@@ -103,8 +101,24 @@ class ColorPickerWidget extends WidgetType {
     picker.type = 'color';
     picker.value = this.color;
 
+    picker.style.display = "none";
+
+    const button = document.createElement("button");
+    button.onclick = () => picker.click();
+
+    button.style.height = "1em";
+    button.style.width = "1em";
+    button.style.padding = "0px";
+    button.style.border = "none";
+    button.style.borderRadius = "2px";
+    button.style.marginLeft = "0.5ch";
+    button.style.backgroundColor = this.color;
+    button.style.cursor = "pointer";
+    button.style.transform = "translateY(-3px)";
+
     const wrapper = document.createElement('span');
     wrapper.appendChild(picker);
+    wrapper.appendChild(button);
     wrapper.className = wrapperClassName;
 
     return wrapper;
