@@ -26,8 +26,5 @@ new EditorView({
 
 ### Todos 
 
-- Handle `hsl()` function notation.
-- Handle keyword notation i.e. `green`.
-- Consider re-setting values to original notation, right now `rgb()` turns into hex when changed.
 - Investigate solutions for alpha values. `input[type="color"]` doesn't support alpha values, we could show another number input next to it for the alpha value.
 
