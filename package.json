@@ -18,6 +18,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite ./dev",
+    "prepublishOnly": "npm run build",
     "build": "cm-buildhelper src/index.ts",
     "test": "cm-runtests"
   },
