@@ -5,12 +5,12 @@ import {
   ViewPlugin,
   DecorationSet,
   Decoration,
-} from "@codemirror/view";
-import type { StyleSpec } from "style-mod";
-import { Extension } from "@codemirror/state";
-import { syntaxTree } from "@codemirror/language";
-import { Range } from "@codemirror/rangeset";
-import { namedColors } from "./named-colors";
+} from '@codemirror/view';
+import type { StyleSpec } from 'style-mod';
+import { Extension } from '@codemirror/state';
+import { syntaxTree } from '@codemirror/language';
+import { Range } from '@codemirror/rangeset';
+import { namedColors } from './named-colors';
 
 interface CSSColorPickerOptions {
   className?: string;
@@ -29,10 +29,10 @@ interface PickerState {
 const dataset = new WeakMap<HTMLInputElement, PickerState>();
 
 enum ColorType {
-  rgb = "RGB",
-  hex = "HEX",
-  named = "NAMED",
-  hsl = "HSL",
+  rgb = 'RGB',
+  hex = 'HEX',
+  named = 'NAMED',
+  hsl = 'HSL',
 }
 
 const rgbCallExpRegex =
@@ -42,7 +42,7 @@ const hslCallExpRegex =
 
 function colorPickersDecorations(
   view: EditorView,
-  options: CSSColorPickerOptions
+  options: CSSColorPickerOptions,
 ) {
   const widgets: Array<Range<Decoration>> = [];
 
@@ -51,9 +51,9 @@ function colorPickersDecorations(
       from: range.from,
       to: range.to,
       enter: (type, from, to) => {
-        if (type.name === "CallExpression") {
+        if (type.name === 'CallExpression') {
           const callExp: string = view.state.doc.sliceString(from, to);
-          if (callExp.startsWith("rgb")) {
+          if (callExp.startsWith('rgb')) {
             const match = rgbCallExpRegex.exec(callExp);
 
             if (!match) {
@@ -69,7 +69,7 @@ function colorPickersDecorations(
                 color,
                 from,
                 to,
-                alpha: a || "",
+                alpha: a || '',
                 options,
               }),
               side: 0,
@@ -79,7 +79,7 @@ function colorPickersDecorations(
 
             return;
           }
-          if (callExp.startsWith("hsl")) {
+          if (callExp.startsWith('hsl')) {
             const match = hslCallExpRegex.exec(callExp);
 
             if (!match) {
@@ -95,7 +95,7 @@ function colorPickersDecorations(
                 color,
                 from,
                 to,
-                alpha: a || "",
+                alpha: a || '',
                 options,
               }),
               side: 1,
@@ -107,9 +107,9 @@ function colorPickersDecorations(
           }
         }
 
-        if (type.name === "ColorLiteral") {
+        if (type.name === 'ColorLiteral') {
           const [color, alpha] = toFullHex(
-            view.state.doc.sliceString(from, to)
+            view.state.doc.sliceString(from, to),
           );
 
           const widget = Decoration.widget({
@@ -127,7 +127,7 @@ function colorPickersDecorations(
           widgets.push(widget.range(from));
         }
 
-        if (type.name === "ValueName") {
+        if (type.name === 'ValueName') {
           const colorName = view.state.doc.sliceString(from, to);
           if (namedColors.has(colorName)) {
             const color = namedColors.get(colorName);
@@ -137,7 +137,7 @@ function colorPickersDecorations(
                 color,
                 from,
                 to,
-                alpha: "",
+                alpha: '',
                 options,
               }),
               side: 1,
@@ -158,7 +158,7 @@ function toFullHex(color: string): string[] {
     // 3-char hex
     return [
       `#${color[1].repeat(2)}${color[2].repeat(2)}${color[3].repeat(2)}`,
-      "",
+      '',
     ];
   }
 
@@ -175,12 +175,12 @@ function toFullHex(color: string): string[] {
     return [`#${color.slice(1, -2)}`, color.slice(-2)];
   }
 
-  return [color, ""];
+  return [color, ''];
 }
 
 function rgbComponentToHex(component: string): string {
   let numericValue: number;
-  if (component.endsWith("%")) {
+  if (component.endsWith('%')) {
     // 0-100%
     const percent = Number(component.slice(0, -1));
     numericValue = Math.round((percent / 100) * 255.0);
@@ -192,7 +192,7 @@ function rgbComponentToHex(component: string): string {
 
 function decimalToHex(decimal: number): string {
   const hex = decimal.toString(16);
-  return hex.length == 1 ? "0" + hex : hex;
+  return hex.length == 1 ? '0' + hex : hex;
 }
 
 function hexToRGBComponents(hex: string): number[] {
@@ -204,7 +204,7 @@ function hexToRGBComponents(hex: string): number[] {
 
 function rgbToHex(r: string, g: string, b: string): string {
   return `#${rgbComponentToHex(r)}${rgbComponentToHex(g)}${rgbComponentToHex(
-    b
+    b,
   )}`;
 }
 
@@ -218,7 +218,7 @@ function hslToHex(h: string, s: string, l: string): string {
 function hslToRGB(
   hue: number,
   saturation: number,
-  luminance: number
+  luminance: number,
 ): number[] {
   // If there is no Saturation it means that it’s a shade of grey.
   // So in that case we just need to convert the Luminance and set R,G and B to that level.
@@ -339,7 +339,7 @@ function rgbToHSL(r: number, g: number, b: number): number[] {
   return [hue, saturation, luminance];
 }
 
-export const wrapperClassName = "cm-css-color-picker-wrapper";
+export const wrapperClassName = 'cm-css-color-picker-wrapper';
 
 class ColorPickerWidget extends WidgetType {
   private readonly state: PickerState;
@@ -373,8 +373,8 @@ class ColorPickerWidget extends WidgetType {
   }
 
   toDOM() {
-    const picker = document.createElement("input");
-    picker.type = "color";
+    const picker = document.createElement('input');
+    picker.type = 'color';
     picker.value = this.color;
 
     const { className } = this.options;
@@ -384,7 +384,7 @@ class ColorPickerWidget extends WidgetType {
 
     dataset.set(picker, this.state);
 
-    const wrapper = document.createElement("span");
+    const wrapper = document.createElement('span');
     wrapper.appendChild(picker);
     wrapper.className = wrapperClassName;
 
@@ -399,28 +399,28 @@ class ColorPickerWidget extends WidgetType {
 const colorPickerTheme = ({ style }: CSSColorPickerOptions) =>
   EditorView.theme({
     [`.${wrapperClassName}`]: {
-      display: "inline-block",
-      outline: "1px solid #eee",
-      marginRight: "0.6ch",
-      height: "1em",
-      width: "1em",
-      transform: "translateY(1px)",
+      display: 'inline-block',
+      outline: '1px solid #eee',
+      marginRight: '0.6ch',
+      height: '1em',
+      width: '1em',
+      transform: 'translateY(1px)',
       ...style.wrapper,
     },
     [`.${wrapperClassName} input[type="color"]`]: {
-      cursor: "pointer",
-      height: "100%",
-      width: "100%",
+      cursor: 'pointer',
+      height: '100%',
+      width: '100%',
       padding: 0,
-      border: "none",
-      "&::-webkit-color-swatch-wrapper": {
+      border: 'none',
+      '&::-webkit-color-swatch-wrapper': {
         padding: 0,
       },
-      "&::-webkit-color-swatch": {
-        border: "none",
+      '&::-webkit-color-swatch': {
+        border: 'none',
       },
-      "&::-moz-color-swatch": {
-        border: "none",
+      '&::-moz-color-swatch': {
+        border: 'none',
       },
       ...style.input,
     },
@@ -447,7 +447,7 @@ const colorPickerViewPlugin = (options: CSSColorPickerOptions) =>
         change: (e, view) => {
           const target = e.target as HTMLInputElement;
           if (
-            target.nodeName !== "INPUT" ||
+            target.nodeName !== 'INPUT' ||
             !target.parentElement ||
             !target.parentElement.classList.contains(wrapperClassName)
           ) {
@@ -458,7 +458,7 @@ const colorPickerViewPlugin = (options: CSSColorPickerOptions) =>
 
           let converted = target.value + data.alpha;
           if (data.colorType === ColorType.rgb) {
-            converted = `rgb(${hexToRGBComponents(target.value).join(", ")}${
+            converted = `rgb(${hexToRGBComponents(target.value).join(', ')}${
               data.alpha
             })`;
           } else if (data.colorType === ColorType.named) {
@@ -470,7 +470,7 @@ const colorPickerViewPlugin = (options: CSSColorPickerOptions) =>
             const [r, g, b] = hexToRGBComponents(target.value);
             const [h, s, l] = rgbToHSL(r, g, b);
             converted = `hsl(${h}, ${Math.round(s * 100)}%, ${Math.round(
-              l * 100
+              l * 100,
             )}%${data.alpha})`;
           }
 
@@ -485,7 +485,7 @@ const colorPickerViewPlugin = (options: CSSColorPickerOptions) =>
           return true;
         },
       },
-    }
+    },
   );
 
 export const colorPicker = (options: CSSColorPickerOptions = {}): Extension => [

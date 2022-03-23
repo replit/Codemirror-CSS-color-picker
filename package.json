@@ -40,5 +40,9 @@
   "repository": {
     "type": "repl",
     "url": "https://replit.com/@util/cm-css-color-picker"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "all"
   }
 }
