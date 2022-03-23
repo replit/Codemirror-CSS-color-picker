@@ -5,6 +5,8 @@ import { colorPicker } from "../src/"
 
 const doc = `
 .wow {
+  font-family: Helvetica Neue;
+  font-size: 17px;
   color: #ff0000;
   border-color: rgb(0, 255, 0%);
   background-color: #00f;
@@ -36,7 +38,17 @@ const doc = `
 new EditorView({
   state: EditorState.create({
     doc,
-    extensions: [colorPicker, basicSetup, css()],
+    extensions: [
+      colorPicker({
+        style: {
+          wrapper: {
+            outlineColor: "#000",
+          },
+        },
+      }),
+      basicSetup,
+      css(),
+    ],
   }),
   parent: document.querySelector('#editor'),
 });
