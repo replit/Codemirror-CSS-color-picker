@@ -1,7 +1,7 @@
 import { basicSetup, EditorState } from '@codemirror/basic-setup';
 import { css } from '@codemirror/lang-css';
 import { EditorView } from '@codemirror/view';
-import { colorPicker } from "../src/"
+import { colorPicker } from '../src/';
 
 const doc = `
 .wow {
@@ -33,7 +33,7 @@ const doc = `
 #hue {
   color: hsl(0, 100%, 50%);
 }
-`
+`;
 
 new EditorView({
   state: EditorState.create({
