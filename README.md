@@ -20,7 +20,6 @@ new EditorView({
       basicSetup,
       css(),
       cssColorPicker({
-        // Configs are optional
         style: {
           wrapper: {
             outlineColor: 'transparent',
@@ -30,6 +29,21 @@ new EditorView({
     ],
   }),
 });
+```
+
+```ts
+interface CSSColorPickerOptions {
+  /**
+   * Additional [`style-mod`](https://github.com/marijnh/style-mod#documentation)
+   * style spec providing theme for the color picker.
+   */
+  style?: {
+    /** Style spec for the color picker `<div>` container */
+    wrapper?: StyleSpec;
+    /** Style spec for the color picker `<input>` element */
+    input?: StyleSpec;
+  };
+}
 ```
 
 ### Todos

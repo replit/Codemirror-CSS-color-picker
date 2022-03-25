@@ -13,12 +13,18 @@ import { Range } from '@codemirror/rangeset';
 import { namedColors } from './named-colors';
 
 interface CSSColorPickerOptions {
-  className?: string;
+  /**
+   * Additional [`style-mod`](https://github.com/marijnh/style-mod#documentation)
+   * style spec providing theme for the color picker.
+   */
   style?: {
+    /** Style spec for the color picker `<div>` container */
     wrapper?: StyleSpec;
+    /** Style spec for the color picker `<input>` element */
     input?: StyleSpec;
   };
 }
+
 interface PickerState {
   from: number;
   to: number;
@@ -376,11 +382,6 @@ class ColorPickerWidget extends WidgetType {
     const picker = document.createElement('input');
     picker.type = 'color';
     picker.value = this.color;
-
-    const { className } = this.options;
-    if (className) {
-      picker.classList.add(className);
-    }
 
     dataset.set(picker, this.state);
 
