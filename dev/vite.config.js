@@ -3,6 +3,6 @@ export default {
     host: '0.0.0.0',
     hmr: {
       port: 443,
-    }
-  }
-}
+    },
+  },
+};

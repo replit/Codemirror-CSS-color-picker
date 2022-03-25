@@ -7,10 +7,10 @@ A codemirror extension that adds a color picker input next to CSS color values
 ### Usage
 
 ```ts
-import {basicSetup, EditorState} from '@codemirror/basic-setup';
-import {EditorView} from '@codemirror/view';
-import {cssLanguage, cssCompletion} from '@codemirror/lang-css';
-import {cssColorPicker} from '@replit/codemirror-css-color-picker';
+import { basicSetup, EditorState } from '@codemirror/basic-setup';
+import { EditorView } from '@codemirror/view';
+import { cssLanguage, cssCompletion } from '@codemirror/lang-css';
+import { cssColorPicker } from '@replit/codemirror-css-color-picker';
 
 const css = new LanguageSupport(cssLanguage, [cssCompletion, cssColorPicker]);
 
@@ -21,10 +21,8 @@ new EditorView({
   }),
   parent: document.querySelector('#editor'),
 });
-
 ```
 
-### Todos 
+### Todos
 
 - Investigate solutions for alpha values. `input[type="color"]` doesn't support alpha values, we could show another number input next to it for the alpha value.
-
