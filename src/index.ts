@@ -78,7 +78,7 @@ function colorPickersDecorations(
                 alpha: a || '',
                 options,
               }),
-              side: 0,
+              side: 1,
             });
 
             widgets.push(widget.range(from));
