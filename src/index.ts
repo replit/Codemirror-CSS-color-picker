@@ -46,10 +46,7 @@ const rgbCallExpRegex =
 const hslCallExpRegex =
   /hsl\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*(,\s*0?\.\d+)?\)/;
 
-function colorPickersDecorations(
-  view: EditorView,
-  options: CSSColorPickerOptions,
-) {
+function colorPickersDecorations(view: EditorView) {
   const widgets: Array<Range<Decoration>> = [];
 
   for (const range of view.visibleRanges) {
@@ -76,7 +73,6 @@ function colorPickersDecorations(
                 from,
                 to,
                 alpha: a || '',
-                options,
               }),
               side: 1,
             });
@@ -102,7 +98,6 @@ function colorPickersDecorations(
                 from,
                 to,
                 alpha: a || '',
-                options,
               }),
               side: 1,
             });
@@ -125,7 +120,6 @@ function colorPickersDecorations(
               from,
               to,
               alpha,
-              options,
             }),
             side: 1,
           });
@@ -144,7 +138,6 @@ function colorPickersDecorations(
                 from,
                 to,
                 alpha: '',
-                options,
               }),
               side: 1,
             });
@@ -354,16 +347,13 @@ class ColorPickerWidget extends WidgetType {
 
   constructor({
     color,
-    options,
     ...state
   }: PickerState & {
     color: string;
-    options: CSSColorPickerOptions;
   }) {
     super();
     this.state = state;
     this.color = color;
-    this.options = options;
   }
 
   eq(other: ColorPickerWidget) {
@@ -372,9 +362,7 @@ class ColorPickerWidget extends WidgetType {
       other.color === this.color &&
       other.state.from === this.state.from &&
       other.state.to === this.state.to &&
-      other.state.alpha === this.state.alpha &&
-      other.options.style?.wrapper === this.options.style?.wrapper &&
-      other.options.style?.input === this.options.style?.input
+      other.state.alpha === this.state.alpha
     );
   }
 
@@ -396,99 +384,99 @@ class ColorPickerWidget extends WidgetType {
   }
 }
 
-const colorPickerTheme = ({ style }: CSSColorPickerOptions) =>
-  EditorView.theme({
-    [`.${wrapperClassName}`]: {
-      display: 'inline-block',
-      outline: '1px solid #eee',
-      marginRight: '0.6ch',
-      height: '1em',
-      width: '1em',
-      transform: 'translateY(1px)',
-      ...style.wrapper,
-    },
-    [`.${wrapperClassName} input[type="color"]`]: {
-      cursor: 'pointer',
-      height: '100%',
-      width: '100%',
+const colorPickerTheme = EditorView.baseTheme({
+  [`.${wrapperClassName}`]: {
+    display: 'inline-block',
+    outline: '1px solid #eee',
+    marginRight: '0.6ch',
+    height: '1em',
+    width: '1em',
+    transform: 'translateY(1px)',
+  },
+  [`.${wrapperClassName} input[type="color"]`]: {
+    cursor: 'pointer',
+    height: '100%',
+    width: '100%',
+    padding: 0,
+    border: 'none',
+    '&::-webkit-color-swatch-wrapper': {
       padding: 0,
+    },
+    '&::-webkit-color-swatch': {
       border: 'none',
-      '&::-webkit-color-swatch-wrapper': {
-        padding: 0,
-      },
-      '&::-webkit-color-swatch': {
-        border: 'none',
-      },
-      '&::-moz-color-swatch': {
-        border: 'none',
-      },
-      ...style.input,
     },
-  });
+    '&::-moz-color-swatch': {
+      border: 'none',
+    },
+  },
+});
 
-const colorPickerViewPlugin = (options: CSSColorPickerOptions) =>
-  ViewPlugin.fromClass(
-    class ColorPickerViewPlugin {
-      decorations: DecorationSet;
+const colorPickerViewPlugin = ViewPlugin.fromClass(
+  class ColorPickerViewPlugin {
+    decorations: DecorationSet;
 
-      constructor(view: EditorView) {
-        this.decorations = colorPickersDecorations(view, options);
+    constructor(view: EditorView) {
+      this.decorations = colorPickersDecorations(view);
+    }
+
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged) {
+        this.decorations = colorPickersDecorations(update.view);
       }
-
-      update(update: ViewUpdate) {
-        if (update.docChanged || update.viewportChanged) {
-          this.decorations = colorPickersDecorations(update.view, options);
+    }
+  },
+  {
+    decorations: (v) => v.decorations,
+    eventHandlers: {
+      change: (e, view) => {
+        const target = e.target as HTMLInputElement;
+        if (
+          target.nodeName !== 'INPUT' ||
+          !target.parentElement ||
+          !target.parentElement.classList.contains(wrapperClassName)
+        ) {
+          return false;
         }
-      }
-    },
-    {
-      decorations: (v) => v.decorations,
-      eventHandlers: {
-        change: (e, view) => {
-          const target = e.target as HTMLInputElement;
-          if (
-            target.nodeName !== 'INPUT' ||
-            !target.parentElement ||
-            !target.parentElement.classList.contains(wrapperClassName)
-          ) {
-            return false;
+
+        const data = pickerState.get(target)!;
+
+        let converted = target.value + data.alpha;
+        if (data.colorType === ColorType.rgb) {
+          converted = `rgb(${hexToRGBComponents(target.value).join(', ')}${
+            data.alpha
+          })`;
+        } else if (data.colorType === ColorType.named) {
+          // If the hex is an exact match for another named color, prefer retaining name
+          for (const [key, value] of namedColors.entries()) {
+            if (value === target.value) converted = key;
           }
+        } else if (data.colorType === ColorType.hsl) {
+          const [r, g, b] = hexToRGBComponents(target.value);
+          const [h, s, l] = rgbToHSL(r, g, b);
+          converted = `hsl(${h}, ${Math.round(s * 100)}%, ${Math.round(
+            l * 100,
+          )}%${data.alpha})`;
+        }
 
-          const data = pickerState.get(target)!;
+        view.dispatch({
+          changes: {
+            from: data.from,
+            to: data.to,
+            insert: converted,
+          },
+        });
 
-          let converted = target.value + data.alpha;
-          if (data.colorType === ColorType.rgb) {
-            converted = `rgb(${hexToRGBComponents(target.value).join(', ')}${
-              data.alpha
-            })`;
-          } else if (data.colorType === ColorType.named) {
-            // If the hex is an exact match for another named color, prefer retaining name
-            for (const [key, value] of namedColors.entries()) {
-              if (value === target.value) converted = key;
-            }
-          } else if (data.colorType === ColorType.hsl) {
-            const [r, g, b] = hexToRGBComponents(target.value);
-            const [h, s, l] = rgbToHSL(r, g, b);
-            converted = `hsl(${h}, ${Math.round(s * 100)}%, ${Math.round(
-              l * 100,
-            )}%${data.alpha})`;
-          }
-
-          view.dispatch({
-            changes: {
-              from: data.from,
-              to: data.to,
-              insert: converted,
-            },
-          });
-
-          return true;
-        },
+        return true;
       },
     },
-  );
+  },
+);
 
 export const colorPicker = (options: CSSColorPickerOptions = {}): Extension => [
-  colorPickerViewPlugin(options),
-  colorPickerTheme(options),
+  colorPickerViewPlugin,
+  colorPickerTheme,
+  EditorView.theme({
+    [`.${wrapperClassName}`]: options.style?.wrapper,
+    [`.${wrapperClassName} input[type="color"]`]: options.style?.input,
+  }),
 ];

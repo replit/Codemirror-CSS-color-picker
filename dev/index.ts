@@ -42,7 +42,7 @@ new EditorView({
       colorPicker({
         style: {
           wrapper: {
-            outlineColor: "#000",
+            outlineColor: '#000',
           },
         },
       }),
