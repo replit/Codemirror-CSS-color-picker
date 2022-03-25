@@ -32,7 +32,7 @@ interface PickerState {
   colorType: ColorType;
 }
 
-const dataset = new WeakMap<HTMLInputElement, PickerState>();
+const pickerState = new WeakMap<HTMLInputElement, PickerState>();
 
 enum ColorType {
   rgb = 'RGB',
@@ -380,10 +380,9 @@ class ColorPickerWidget extends WidgetType {
 
   toDOM() {
     const picker = document.createElement('input');
+    pickerState.set(picker, this.state);
     picker.type = 'color';
     picker.value = this.color;
-
-    dataset.set(picker, this.state);
 
     const wrapper = document.createElement('span');
     wrapper.appendChild(picker);
@@ -455,7 +454,7 @@ const colorPickerViewPlugin = (options: CSSColorPickerOptions) =>
             return false;
           }
 
-          const data = dataset.get(target)!;
+          const data = pickerState.get(target)!;
 
           let converted = target.value + data.alpha;
           if (data.colorType === ColorType.rgb) {
