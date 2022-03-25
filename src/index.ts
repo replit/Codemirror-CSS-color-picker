@@ -6,24 +6,10 @@ import {
   DecorationSet,
   Decoration,
 } from '@codemirror/view';
-import type { StyleSpec } from 'style-mod';
 import { Extension } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
 import { Range } from '@codemirror/rangeset';
 import { namedColors } from './named-colors';
-
-interface CSSColorPickerOptions {
-  /**
-   * Additional [`style-mod`](https://github.com/marijnh/style-mod#documentation)
-   * style spec providing theme for the color picker.
-   */
-  style?: {
-    /** Style spec for the color picker `<div>` container */
-    wrapper?: StyleSpec;
-    /** Style spec for the color picker `<input>` element */
-    input?: StyleSpec;
-  };
-}
 
 interface PickerState {
   from: number;
@@ -343,7 +329,6 @@ export const wrapperClassName = 'cm-css-color-picker-wrapper';
 class ColorPickerWidget extends WidgetType {
   private readonly state: PickerState;
   private readonly color: string;
-  private readonly options: CSSColorPickerOptions;
 
   constructor({
     color,
@@ -472,11 +457,4 @@ const colorPickerViewPlugin = ViewPlugin.fromClass(
   },
 );
 
-export const colorPicker = (options: CSSColorPickerOptions = {}): Extension => [
-  colorPickerViewPlugin,
-  colorPickerTheme,
-  EditorView.theme({
-    [`.${wrapperClassName}`]: options.style?.wrapper,
-    [`.${wrapperClassName} input[type="color"]`]: options.style?.input,
-  }),
-];
+export const colorPicker: Extension = [colorPickerViewPlugin, colorPickerTheme];

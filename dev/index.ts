@@ -1,7 +1,7 @@
 import { basicSetup, EditorState } from '@codemirror/basic-setup';
 import { css } from '@codemirror/lang-css';
 import { EditorView } from '@codemirror/view';
-import { colorPicker } from '../src/';
+import { colorPicker, wrapperClassName } from '../src/';
 
 const doc = `
 .wow {
@@ -39,15 +39,14 @@ new EditorView({
   state: EditorState.create({
     doc,
     extensions: [
-      colorPicker({
-        style: {
-          wrapper: {
-            outlineColor: '#000',
-          },
-        },
-      }),
+      colorPicker,
       basicSetup,
       css(),
+      EditorView.theme({
+        [`.${wrapperClassName}`]: {
+          outlineColor: '#000',
+        },
+      }),
     ],
   }),
   parent: document.querySelector('#editor'),
