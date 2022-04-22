@@ -23,23 +23,23 @@
     "test": "cm-runtests"
   },
   "peerDependencies": {
-    "@codemirror/language": "0.19.x",
-    "@codemirror/rangeset": "0.19.x",
-    "@codemirror/view": "0.19.x"
+    "@codemirror/language": "^0.20.0",
+    "@codemirror/state": "^0.20.0",
+    "@codemirror/view": "^0.20.0"
   },
   "devDependencies": {
-    "@codemirror/basic-setup": "^0.19.1",
-    "@codemirror/buildhelper": "^0.1.14",
-    "@codemirror/lang-css": "^0.19.3",
-    "@codemirror/language": "^0.19.8",
-    "@codemirror/rangeset": "^0.19.9",
-    "@codemirror/view": "^0.19.47",
+    "@codemirror/basic-setup": "^0.20.0",
+    "@codemirror/buildhelper": "^0.1.15",
+    "@codemirror/lang-css": "^0.20.0",
+    "@codemirror/language": "^0.20.0",
+    "@codemirror/state": "^0.20.0",
+    "@codemirror/view": "^0.20.1",
     "prettier": "^2.6.0",
     "vite": "^2.8.6"
   },
   "repository": {
-    "type": "repl",
-    "url": "https://replit.com/@util/cm-css-color-picker"
+    "type": "git",
+    "url": "https://github.com/replit/Codemirror-CSS-color-picker"
   },
   "prettier": {
     "singleQuote": true,

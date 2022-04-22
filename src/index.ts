@@ -6,9 +6,8 @@ import {
   DecorationSet,
   Decoration,
 } from '@codemirror/view';
-import { Extension } from '@codemirror/state';
+import { Range, Extension } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
-import { Range } from '@codemirror/rangeset';
 import { namedColors } from './named-colors';
 
 interface PickerState {
@@ -39,7 +38,7 @@ function colorPickersDecorations(view: EditorView) {
     syntaxTree(view.state).iterate({
       from: range.from,
       to: range.to,
-      enter: (type, from, to) => {
+      enter: ({type, from, to}) => {
         if (type.name === 'CallExpression') {
           const callExp: string = view.state.doc.sliceString(from, to);
           if (callExp.startsWith('rgb')) {
