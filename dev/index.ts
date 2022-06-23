@@ -1,5 +1,6 @@
-import { basicSetup, EditorState } from '@codemirror/basic-setup';
+import { basicSetup } from 'codemirror';
 import { css } from '@codemirror/lang-css';
+import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { colorPicker, wrapperClassName } from '../src/';
 

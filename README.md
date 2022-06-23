@@ -10,7 +10,8 @@ A CodeMirror extension that adds a color picker input next to CSS color values.
 ### Usage
 
 ```ts
-import { basicSetup, EditorState } from '@codemirror/basic-setup';
+import { basicSetup } from 'codemirror';
+import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { css } from '@codemirror/lang-css';
 import { cssColorPicker } from '@replit/codemirror-css-color-picker';
