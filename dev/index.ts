@@ -28,7 +28,7 @@ const doc = `
   border-top-color: aquamarine;
   border-left-color: mediumaquamarine;
   border-right-color: lightcoral;
-  border-bottom-color: snow;
+  border-bottom-color: snow;asdasd
 }
 
 #hue {
