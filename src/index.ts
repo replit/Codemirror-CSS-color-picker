@@ -27,7 +27,7 @@ enum ColorType {
 }
 
 const rgbCallExpRegex =
-  /rgb\(\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*(,\s*0?\.\d+)?\)/;
+  /rgb(?:a)?\(\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*(,\s*0?\.\d+)?\)/;
 const hslCallExpRegex =
   /hsl\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*(,\s*0?\.\d+)?\)/;
 
@@ -116,6 +116,11 @@ function colorPickersDecorations(view: EditorView) {
           const colorName = view.state.doc.sliceString(from, to);
           if (namedColors.has(colorName)) {
             const color = namedColors.get(colorName);
+
+            if (!color) {
+              return;
+            }
+
             const widget = Decoration.widget({
               widget: new ColorPickerWidget({
                 colorType: ColorType.named,
