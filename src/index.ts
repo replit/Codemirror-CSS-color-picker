@@ -116,11 +116,6 @@ function colorPickersDecorations(view: EditorView) {
           const colorName = view.state.doc.sliceString(from, to);
           if (namedColors.has(colorName)) {
             const color = namedColors.get(colorName);
-
-            if (!color) {
-              return;
-            }
-
             const widget = Decoration.widget({
               widget: new ColorPickerWidget({
                 colorType: ColorType.named,
