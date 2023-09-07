@@ -46,20 +46,47 @@ const htmlDoc = `
     </style>
   </head>
   <body>
-    <div style="color: red">
-    <div style="color: #ff0000">
-    <div style="color: rgb(0, 255, 0%)">
-    <div style="color: #00f">
-    <div style="color: #FF00FFAA">
-    <div style="color: rgb(255, 50%, 64, 0.5)">
-    <div style="color: #ABCD">
-    
-  
+
+  <body>
+    <div
+      style="
+        font-family: Helvetica Neue;
+        font-size: 17px;
+        color: #ff0000;
+        border-color: rgb(0, 255, 0%);
+        background-color: #00f;
+      "
+    >
+      wow
+    </div>
+    <div
+      style="
+        color: #ff00ffaa;
+        border-color: rgb(255, 50%, 64, 0.5);
+        border-color: rgba(255, 50%, 64, 0.5);
+      "
+    >
+      alpha
+    </div>
+    <div style="color: #abcd">hex4</div>
+    <div
+      style="
+        color: red;
+        background-color: blue;
+        border-top-color: aquamarine;
+        border-left-color: mediumaquamarine;
+        border-right-color: lightcoral;
+        border-bottom-color: snow;
+      "
+    >
+      named
+    </div>
+    <div style="color: hsl(0, 100%, 50%)">hue</div>
   </body>
 </html>
-`
+`;
 
-const cssParent =  document.querySelector('#editor-css');
+const cssParent = document.querySelector('#editor-css');
 const htmlParent = document.querySelector('#editor-html');
 
 if (!cssParent || !htmlParent) {
@@ -83,7 +110,6 @@ new EditorView({
   parent: cssParent,
 });
 
-
 new EditorView({
   state: EditorState.create({
     doc: htmlDoc,
@@ -100,4 +126,3 @@ new EditorView({
   }),
   parent: cssParent,
 });
-

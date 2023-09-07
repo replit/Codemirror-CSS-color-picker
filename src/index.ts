@@ -6,7 +6,8 @@ import {
   DecorationSet,
   Decoration,
 } from '@codemirror/view';
-import { Range, Extension } from '@codemirror/state';
+import { Range, Extension, Text } from '@codemirror/state';
+import { NodeProp, Tree } from '@lezer/common';
 import { syntaxTree } from '@codemirror/language';
 import { namedColors } from './named-colors';
 
@@ -15,6 +16,10 @@ interface PickerState {
   to: number;
   alpha: string;
   colorType: ColorType;
+}
+
+interface WidgetOptions extends PickerState {
+  color: string;
 }
 
 const pickerState = new WeakMap<HTMLInputElement, PickerState>();
@@ -31,104 +36,178 @@ const rgbCallExpRegex =
 const hslCallExpRegex =
   /hsl\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*(,\s*0?\.\d+)?\)/;
 
+function enter(
+  syntaxTree: Tree,
+  from: number,
+  to: number,
+  typeName: string,
+  doc: Text,
+): WidgetOptions | Array<WidgetOptions> | null {
+  switch (typeName) {
+    case 'AttributeValue': {
+      const innerTree = syntaxTree.resolveInner(from, 0).tree;
+
+      if (!innerTree) {
+        return null;
+      }
+
+      const overlayTree = innerTree.prop(NodeProp.mounted)?.tree;
+
+      if (overlayTree?.type.name !== 'Styles') {
+        return null;
+      }
+
+      const ret: Array<WidgetOptions> = [];
+      overlayTree.iterate({
+        from: 0,
+        to: overlayTree.length,
+        enter: ({ type, from: overlayFrom, to: overlayTo }) => {
+          const maybeWidgetOptions = enter(
+            syntaxTree,
+            // We add one because the tree doesn't include the
+            // quotation mark from the style tag
+            from + 1 + overlayFrom,
+            from + 1 + overlayTo,
+            type.name,
+            doc,
+          );
+
+          if (maybeWidgetOptions) {
+            if (Array.isArray(maybeWidgetOptions)) {
+              throw new Error('Unexpected nested overlays');
+            }
+
+            ret.push(maybeWidgetOptions);
+          }
+        },
+      });
+
+      return ret;
+    }
+
+    case 'CallExpression': {
+      const callExp = doc.sliceString(from, to);
+      const fn = callExp.slice(0, 3);
+
+      switch (fn) {
+        case 'rgb': {
+          const match = rgbCallExpRegex.exec(callExp);
+
+          if (!match) {
+            return null;
+          }
+
+          const [_, r, g, b, a] = match;
+          const color = rgbToHex(r, g, b);
+
+          return {
+            colorType: ColorType.rgb,
+            color,
+            from,
+            to,
+            alpha: a || '',
+          };
+        }
+        case 'hsl': {
+          const match = hslCallExpRegex.exec(callExp);
+
+          if (!match) {
+            return null;
+          }
+
+          const [_, h, s, l, a] = match;
+          const color = hslToHex(h, s, l);
+
+          return {
+            colorType: ColorType.hsl,
+            color,
+            from,
+            to,
+            alpha: a || '',
+          };
+        }
+        default:
+          return null;
+      }
+    }
+
+    case 'ColorLiteral': {
+      const [color, alpha] = toFullHex(doc.sliceString(from, to));
+
+      return {
+        colorType: ColorType.hex,
+        color,
+        from,
+        to,
+        alpha,
+      };
+    }
+
+    case 'ValueName': {
+      const colorName = doc.sliceString(from, to);
+
+      console.log(from, to, colorName);
+
+      const color = namedColors.get(colorName);
+
+      if (!color) {
+        return null;
+      }
+
+      return {
+        colorType: ColorType.named,
+        color,
+        from,
+        to,
+        alpha: '',
+      };
+    }
+
+    default:
+      return null;
+  }
+}
+
 function colorPickersDecorations(view: EditorView) {
   const widgets: Array<Range<Decoration>> = [];
 
+  const st = syntaxTree(view.state);
+
   for (const range of view.visibleRanges) {
-    syntaxTree(view.state).iterate({
+    st.iterate({
       from: range.from,
       to: range.to,
-      enter: ({type, from, to}) => {
-        if (type.name === 'CallExpression') {
-          const callExp: string = view.state.doc.sliceString(from, to);
-          if (callExp.startsWith('rgb')) {
-            const match = rgbCallExpRegex.exec(callExp);
+      enter: ({ type, from, to }) => {
+        const maybeWidgetOptions = enter(
+          st,
+          from,
+          to,
+          type.name,
+          view.state.doc,
+        );
 
-            if (!match) {
-              return;
-            }
-
-            const [_, r, g, b, a] = match;
-            const color = rgbToHex(r, g, b);
-
-            const widget = Decoration.widget({
-              widget: new ColorPickerWidget({
-                colorType: ColorType.rgb,
-                color,
-                from,
-                to,
-                alpha: a || '',
-              }),
-              side: 1,
-            });
-
-            widgets.push(widget.range(from));
-
-            return;
-          }
-          if (callExp.startsWith('hsl')) {
-            const match = hslCallExpRegex.exec(callExp);
-
-            if (!match) {
-              return;
-            }
-
-            const [_, h, s, l, a] = match;
-            const color = hslToHex(h, s, l);
-
-            const widget = Decoration.widget({
-              widget: new ColorPickerWidget({
-                colorType: ColorType.hsl,
-                color,
-                from,
-                to,
-                alpha: a || '',
-              }),
-              side: 1,
-            });
-
-            widgets.push(widget.range(from));
-
-            return;
-          }
+        if (!maybeWidgetOptions) {
+          return;
         }
 
-        if (type.name === 'ColorLiteral') {
-          const [color, alpha] = toFullHex(
-            view.state.doc.sliceString(from, to),
+        if (!Array.isArray(maybeWidgetOptions)) {
+          widgets.push(
+            Decoration.widget({
+              widget: new ColorPickerWidget(maybeWidgetOptions),
+              side: 1,
+            }).range(maybeWidgetOptions.from),
           );
 
-          const widget = Decoration.widget({
-            widget: new ColorPickerWidget({
-              colorType: ColorType.hex,
-              color,
-              from,
-              to,
-              alpha,
-            }),
-            side: 1,
-          });
-
-          widgets.push(widget.range(from));
+          return;
         }
 
-        if (type.name === 'ValueName') {
-          const colorName = view.state.doc.sliceString(from, to);
-          if (namedColors.has(colorName)) {
-            const color = namedColors.get(colorName);
-            const widget = Decoration.widget({
-              widget: new ColorPickerWidget({
-                colorType: ColorType.named,
-                color,
-                from,
-                to,
-                alpha: '',
-              }),
+        for (const wo of maybeWidgetOptions) {
+          widgets.push(
+            Decoration.widget({
+              widget: new ColorPickerWidget(wo),
               side: 1,
-            });
-
-            widgets.push(widget.range(from));
-          }
+            }).range(wo.from),
+          );
         }
       },
     });
@@ -329,12 +408,7 @@ class ColorPickerWidget extends WidgetType {
   private readonly state: PickerState;
   private readonly color: string;
 
-  constructor({
-    color,
-    ...state
-  }: PickerState & {
-    color: string;
-  }) {
+  constructor({ color, ...state }: WidgetOptions) {
     super();
     this.state = state;
     this.color = color;
