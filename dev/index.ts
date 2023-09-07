@@ -1,10 +1,11 @@
 import { basicSetup } from 'codemirror';
 import { css } from '@codemirror/lang-css';
+import { html } from '@codemirror/lang-html';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { colorPicker, wrapperClassName } from '../src/';
 
-const doc = `
+const cssDoc = `
 .wow {
   font-family: Helvetica Neue;
   font-size: 17px;
@@ -16,6 +17,7 @@ const doc = `
 #alpha {
   color: #FF00FFAA;
   border-color: rgb(255, 50%, 64, 0.5);
+  border-color: rgba(255, 50%, 64, 0.5);
 }
 
 .hex4 {
@@ -36,9 +38,37 @@ const doc = `
 }
 `;
 
+const htmlDoc = `
+<html>
+  <head>
+    <style>
+      ${cssDoc}
+    </style>
+  </head>
+  <body>
+    <div style="color: red">
+    <div style="color: #ff0000">
+    <div style="color: rgb(0, 255, 0%)">
+    <div style="color: #00f">
+    <div style="color: #FF00FFAA">
+    <div style="color: rgb(255, 50%, 64, 0.5)">
+    <div style="color: #ABCD">
+    
+  
+  </body>
+</html>
+`
+
+const cssParent =  document.querySelector('#editor-css');
+const htmlParent = document.querySelector('#editor-html');
+
+if (!cssParent || !htmlParent) {
+  throw new Error('Could not find #editor-css or #editor-html');
+}
+
 new EditorView({
   state: EditorState.create({
-    doc,
+    doc: cssDoc,
     extensions: [
       colorPicker,
       basicSetup,
@@ -50,5 +80,24 @@ new EditorView({
       }),
     ],
   }),
-  parent: document.querySelector('#editor'),
+  parent: cssParent,
 });
+
+
+new EditorView({
+  state: EditorState.create({
+    doc: htmlDoc,
+    extensions: [
+      colorPicker,
+      basicSetup,
+      html(),
+      EditorView.theme({
+        [`.${wrapperClassName}`]: {
+          outlineColor: '#000',
+        },
+      }),
+    ],
+  }),
+  parent: cssParent,
+});
+

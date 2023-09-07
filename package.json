@@ -28,14 +28,15 @@
     "@codemirror/view": "^6.0.0"
   },
   "devDependencies": {
-    "codemirror": "^6.0.0",
     "@codemirror/buildhelper": "^0.1.16",
     "@codemirror/lang-css": "^6.0.0",
+    "@codemirror/lang-html": "^6.4.6",
     "@codemirror/language": "^6.0.0",
     "@codemirror/state": "^6.0.0",
     "@codemirror/view": "^6.0.0",
+    "codemirror": "^6.0.0",
     "prettier": "^2.6.0",
-    "vite": "^2.8.6"
+    "vite": "^4.4.9"
   },
   "repository": {
     "type": "git",
