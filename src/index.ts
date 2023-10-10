@@ -146,8 +146,6 @@ function enter(
     case 'ValueName': {
       const colorName = doc.sliceString(from, to);
 
-      console.log(from, to, colorName);
-
       const color = namedColors.get(colorName);
 
       if (!color) {
