@@ -14,7 +14,7 @@ import { basicSetup } from 'codemirror';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { css } from '@codemirror/lang-css';
-import { colorPicker } from '@replit/codemirror-css-color-picker';
+import { colorPicker, wrapperClassName } from '@replit/codemirror-css-color-picker';
 
 new EditorView({
   parent: document.querySelector('#editor'),
@@ -23,11 +23,10 @@ new EditorView({
     extensions: [
       basicSetup,
       css(),
-      colorPicker({
-        style: {
-          wrapper: {
-            outlineColor: 'transparent',
-          },
+      colorPicker,
+      EditorView.theme({
+        [`.${wrapperClassName}`]: {
+          outlineColor: 'transparent',
         },
       }),
     ],
