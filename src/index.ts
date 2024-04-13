@@ -8,7 +8,7 @@ import {
 } from '@codemirror/view';
 import { Range, Extension, Text } from '@codemirror/state';
 import { NodeProp, Tree } from '@lezer/common';
-import { syntaxTree } from '@codemirror/language';
+import { language, syntaxTree } from '@codemirror/language';
 import { namedColors } from './named-colors';
 
 interface PickerState {
@@ -18,13 +18,15 @@ interface PickerState {
   colorType: ColorType;
 }
 
-interface WidgetOptions extends PickerState {
+export interface WidgetOptions extends PickerState {
   color: string;
 }
 
+export type ColorData = Omit<WidgetOptions, 'from' | 'to'>;
+
 const pickerState = new WeakMap<HTMLInputElement, PickerState>();
 
-enum ColorType {
+export enum ColorType {
   rgb = 'RGB',
   hex = 'HEX',
   named = 'NAMED',
@@ -35,13 +37,15 @@ const rgbCallExpRegex =
   /rgb(?:a)?\(\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*(,\s*0?\.\d+)?\)/;
 const hslCallExpRegex =
   /hsl\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*(,\s*0?\.\d+)?\)/;
+const hexRegex = /(^|\b)(#[0-9a-f]{3,9})(\b|$)/i;
 
-function enter(
+function discoverColorsInCSS(
   syntaxTree: Tree,
   from: number,
   to: number,
   typeName: string,
   doc: Text,
+  language?: string
 ): WidgetOptions | Array<WidgetOptions> | null {
   switch (typeName) {
     case 'AttributeValue': {
@@ -62,7 +66,7 @@ function enter(
         from: 0,
         to: overlayTree.length,
         enter: ({ type, from: overlayFrom, to: overlayTo }) => {
-          const maybeWidgetOptions = enter(
+          const maybeWidgetOptions = discoverColorsInCSS(
             syntaxTree,
             // We add one because the tree doesn't include the
             // quotation mark from the style tag
@@ -70,6 +74,7 @@ function enter(
             from + 1 + overlayTo,
             type.name,
             doc,
+            language
           );
 
           if (maybeWidgetOptions) {
@@ -87,77 +92,42 @@ function enter(
 
     case 'CallExpression': {
       const callExp = doc.sliceString(from, to);
-      const fn = callExp.slice(0, 3);
-
-      switch (fn) {
-        case 'rgb': {
-          const match = rgbCallExpRegex.exec(callExp);
-
-          if (!match) {
-            return null;
-          }
-
-          const [_, r, g, b, a] = match;
-          const color = rgbToHex(r, g, b);
-
-          return {
-            colorType: ColorType.rgb,
-            color,
-            from,
-            to,
-            alpha: a || '',
-          };
-        }
-        case 'hsl': {
-          const match = hslCallExpRegex.exec(callExp);
-
-          if (!match) {
-            return null;
-          }
-
-          const [_, h, s, l, a] = match;
-          const color = hslToHex(h, s, l);
-
-          return {
-            colorType: ColorType.hsl,
-            color,
-            from,
-            to,
-            alpha: a || '',
-          };
-        }
-        default:
-          return null;
+      const result = parseCallExpression(callExp)
+      if (!result) {
+        return null;
+      }
+      return {
+        ...result,
+        from,
+        to
       }
     }
 
     case 'ColorLiteral': {
-      const [color, alpha] = toFullHex(doc.sliceString(from, to));
-
+      const result = parseColorLiteral(doc.sliceString(from, to));
+      if (!result) {
+        return null;
+      }
       return {
-        colorType: ColorType.hex,
-        color,
+        ...result,
         from,
-        to,
-        alpha,
+        to
       };
     }
 
     case 'ValueName': {
       const colorName = doc.sliceString(from, to);
 
-      const color = namedColors.get(colorName);
+      const result = parseNamedColor(colorName);
 
-      if (!color) {
+      if (!result) {
         return null;
       }
 
       return {
-        colorType: ColorType.named,
-        color,
+        ...result,
         from,
-        to,
-        alpha: '',
+        to
       };
     }
 
@@ -166,7 +136,77 @@ function enter(
   }
 }
 
-function colorPickersDecorations(view: EditorView) {
+export function parseCallExpression(callExp: string): ColorData | null {
+  const fn = callExp.slice(0, 3);
+
+  switch (fn) {
+    case 'rgb': {
+      const match = rgbCallExpRegex.exec(callExp);
+
+      if (!match) {
+        return null;
+      }
+
+      const [_, r, g, b, a] = match;
+      const color = rgbToHex(r, g, b);
+
+      return {
+        colorType: ColorType.rgb,
+        color,
+        alpha: a || '',
+      };
+    }
+    case 'hsl': {
+      const match = hslCallExpRegex.exec(callExp);
+
+      if (!match) {
+        return null;
+      }
+
+      const [_, h, s, l, a] = match;
+      const color = hslToHex(h, s, l);
+
+      return {
+        colorType: ColorType.hsl,
+        color,
+        alpha: a || '',
+      };
+    }
+    default:
+      return null;
+  }
+}
+
+export function parseColorLiteral(colorLiteral: string): ColorData | null {
+  const match = hexRegex.exec(colorLiteral);
+  if (!match) {
+    return null;
+  }
+  const [color, alpha] = toFullHex(colorLiteral);
+
+  return {
+    colorType: ColorType.hex,
+    color,
+    alpha,
+  }
+}
+
+export function parseNamedColor(colorName: string): ColorData | null {
+
+  const color = namedColors.get(colorName);
+
+  if (!color) {
+    return null;
+  }
+
+  return {
+    colorType: ColorType.named,
+    color,
+    alpha: '',
+  };
+}
+
+function colorPickersDecorations(view: EditorView, discoverColors: typeof discoverColorsInCSS) {
   const widgets: Array<Range<Decoration>> = [];
 
   const st = syntaxTree(view.state);
@@ -176,12 +216,13 @@ function colorPickersDecorations(view: EditorView) {
       from: range.from,
       to: range.to,
       enter: ({ type, from, to }) => {
-        const maybeWidgetOptions = enter(
+        const maybeWidgetOptions = discoverColors(
           st,
           from,
           to,
           type.name,
           view.state.doc,
+          view.state.facet(language)?.name
         );
 
         if (!maybeWidgetOptions) {
@@ -253,7 +294,7 @@ function rgbComponentToHex(component: string): string {
 
 function decimalToHex(decimal: number): string {
   const hex = decimal.toString(16);
-  return hex.length == 1 ? '0' + hex : hex;
+  return hex.length === 1 ? '0' + hex : hex;
 }
 
 function hexToRGBComponents(hex: string): number[] {
@@ -467,17 +508,21 @@ const colorPickerTheme = EditorView.baseTheme({
   },
 });
 
-const colorPickerViewPlugin = ViewPlugin.fromClass(
+interface IFactoryOptions {
+   discoverColors: typeof discoverColorsInCSS;
+}
+
+export const makeColorPicker = (options: IFactoryOptions) => ViewPlugin.fromClass(
   class ColorPickerViewPlugin {
     decorations: DecorationSet;
 
     constructor(view: EditorView) {
-      this.decorations = colorPickersDecorations(view);
+      this.decorations = colorPickersDecorations(view, options.discoverColors);
     }
 
     update(update: ViewUpdate) {
       if (update.docChanged || update.viewportChanged) {
-        this.decorations = colorPickersDecorations(update.view);
+        this.decorations = colorPickersDecorations(update.view, options.discoverColors);
       }
     }
   },
@@ -504,7 +549,7 @@ const colorPickerViewPlugin = ViewPlugin.fromClass(
         } else if (data.colorType === ColorType.named) {
           // If the hex is an exact match for another named color, prefer retaining name
           for (const [key, value] of namedColors.entries()) {
-            if (value === target.value) converted = key;
+            if (value === target.value) {converted = key;}
           }
         } else if (data.colorType === ColorType.hsl) {
           const [r, g, b] = hexToRGBComponents(target.value);
@@ -528,4 +573,4 @@ const colorPickerViewPlugin = ViewPlugin.fromClass(
   },
 );
 
-export const colorPicker: Extension = [colorPickerViewPlugin, colorPickerTheme];
+export const colorPicker: Extension = [makeColorPicker({discoverColors: discoverColorsInCSS}), colorPickerTheme];
