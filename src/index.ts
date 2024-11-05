@@ -34,7 +34,7 @@ export enum ColorType {
 }
 
 const rgbCallExpRegex =
-  /rgb(?:a)?\(\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*(,\s*0?\.\d+)?\)/;
+  /rgb(?:a)?\(\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*([,/]\s*0?\.?\d+%?)?\)/;
 const hslCallExpRegex =
   /hsl\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*(,\s*0?\.\d+)?\)/;
 const hexRegex = /(^|\b)(#[0-9a-f]{3,9})(\b|$)/i;
@@ -481,7 +481,7 @@ class ColorPickerWidget extends WidgetType {
   }
 }
 
-const colorPickerTheme = EditorView.baseTheme({
+export const colorPickerTheme = EditorView.baseTheme({
   [`.${wrapperClassName}`]: {
     display: 'inline-block',
     outline: '1px solid #eee',
