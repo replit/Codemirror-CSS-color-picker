@@ -153,7 +153,7 @@ export function parseCallExpression(callExp: string): ColorData | null {
       return {
         colorType: ColorType.rgb,
         color,
-        alpha: a.replace(/^\//, ',') || '',
+        alpha: a?.replace(/^\//, ',') || '',
       };
     }
     case 'hsl': {
@@ -169,7 +169,7 @@ export function parseCallExpression(callExp: string): ColorData | null {
       return {
         colorType: ColorType.hsl,
         color,
-        alpha: a.replace(/^\//, ',') || '',
+        alpha: a?.replace(/^\//, ',') || '',
       };
     }
     default:
