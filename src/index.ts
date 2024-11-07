@@ -34,9 +34,9 @@ export enum ColorType {
 }
 
 const rgbCallExpRegex =
-  /rgb(?:a)?\(\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*,?\s*(\d{1,3}%?)\s*([,/]\s*0?\.?\d+%?)?\)/;
+  /rgba?\(\s*(\d{1,3}%?)\s*[,\s]\s*(\d{1,3}%?)\s*[,\s]\s*(\d{1,3}%?)\s*([,/]\s*0?\.?\d+%?)?\s*\)/;
 const hslCallExpRegex =
-  /hsl\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*(,\s*0?\.\d+)?\)/;
+  /hsla?\(\s*(\d{1,3})(?:deg)?\s*[,\s]\s*(\d{1,3})%?\s*[,\s]\s*(\d{1,3})%?\s*([,/]\s*0?\.?\d+%?)?\s*\)/;
 const hexRegex = /(^|\b)(#[0-9a-f]{3,9})(\b|$)/i;
 
 function discoverColorsInCSS(
@@ -153,7 +153,7 @@ export function parseCallExpression(callExp: string): ColorData | null {
       return {
         colorType: ColorType.rgb,
         color,
-        alpha: a || '',
+        alpha: a?.replace(/^\//, ',') || '',
       };
     }
     case 'hsl': {
@@ -169,7 +169,7 @@ export function parseCallExpression(callExp: string): ColorData | null {
       return {
         colorType: ColorType.hsl,
         color,
-        alpha: a || '',
+        alpha: a?.replace(/^\//, ',') || '',
       };
     }
     default:
